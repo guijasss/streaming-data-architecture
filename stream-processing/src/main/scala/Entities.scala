@@ -50,8 +50,6 @@ case class AddToCartEvent(
    timestamp: String,
    userId: Int,
    productId: String,
-   price: Double,
-   currency: String,
    eventType: String = "add_to_cart"
  ) extends Event
 
@@ -60,10 +58,7 @@ case class CheckoutStartEvent(
    eventId: String,
    timestamp: String,
    userId: Int,
-   cartItems: List[Map[String, Any]],
-   totalAmount: Double,
-   currency: String,
-   paymentOptions: List[String],
+   cartItems: Array[String],
    eventType: String = "checkout_start"
 ) extends Event
 
@@ -73,8 +68,5 @@ case class PurchaseEvent(
   timestamp: String,
   userId: Int,
   orderId: String,
-  totalAmount: Double,
-  currency: String,
-  paymentMethod: String,
   eventType: String = "purchase"
 ) extends Event

@@ -9,3 +9,4 @@ lazy val root = (project in file("."))
   )
 
 libraryDependencies += "com.typesafe.play" %% "play-json" % "2.10.6"
+libraryDependencies += "org.apache.kafka" % "kafka-streams" % "4.0.0"
