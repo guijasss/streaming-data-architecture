@@ -55,6 +55,7 @@ object Main extends App {
     logger.info(s"Received event - key: $key, value: $value")
   }
 
+  // Changed the window time to 30 minutes (1800 seconds)
   private val unmatchedCheckouts: KStream[String, CheckoutStartEvent] =
     checkouts
       .leftJoin(
@@ -64,7 +65,7 @@ object Main extends App {
             if (purchase == null) checkout else null
           }
         },
-        JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofSeconds(60)),
+        JoinWindows.ofTimeDifferenceWithNoGrace(Duration.ofSeconds(30)),
         StreamJoined.`with`(
           Serdes.String(),
           serdeFor[CheckoutStartEvent],
@@ -73,6 +74,7 @@ object Main extends App {
       )
       .filter((_, checkout) => checkout != null)
 
+  // Send abandoned checkouts to the target topic
   unmatchedCheckouts.to("abandoned-checkouts", Produced.`with`(Serdes.String(), serdeFor[CheckoutStartEvent]))
 
   private val topology = builder.build()
