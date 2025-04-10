@@ -12,4 +12,3 @@ def send_to_kafka(event: dict):
     producer = Producer(producer_conf)
     producer.produce(TOPIC_NAME, key=event["tracking_id"], value=dumps(event))
     producer.flush()
-    print(f"✅ Sent: {event}")
