@@ -1,5 +1,7 @@
 package org.tcc2.streaming
 
+import play.api.libs.json.JsObject
+
 trait Event {
   def eventId: String
   def timestamp: String
@@ -61,3 +63,11 @@ case class PurchaseEvent(
   orderId: String,
   eventType: String = "purchase"
 ) extends Event
+
+case class FlattenedEvent(
+   event_id: String,
+   timestamp: String,
+   user_id: Int,
+   event_type: String,
+   event_data: JsObject
+ )

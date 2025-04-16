@@ -2,6 +2,7 @@ package org.tcc2.streaming
 
 import EventJsonSerializer.*
 import JsonSerdes.serdeFor
+import Helpers.flattenEvent
 
 import org.apache.kafka.common.serialization.Serdes
 import org.apache.kafka.streams.kstream.{JoinWindows, KStream, Produced, StreamJoined, ValueJoiner}
@@ -47,7 +48,7 @@ object Main extends App {
     serdeFor[CheckoutStartEvent]
   )
   builder.addStateStore(storeSupplier)
-  
+
   private val checkouts: KStream[String, CheckoutStartEvent] =
     eventsStream
       .filter((_, json) => parseEvent(json).exists(_.isInstanceOf[CheckoutStartEvent]))
@@ -107,6 +108,9 @@ object Main extends App {
       override def close(): Unit = {}
     }
   }, pendingCheckoutsStoreName)
+
+  private val flattenedEvents: KStream[String, String] = eventsStream.mapValues(flattenEvent)
+  flattenedEvents.to("user-events-flatten")
 
   private val topology = builder.build()
   println(topology.describe())

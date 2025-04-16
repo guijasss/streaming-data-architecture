@@ -1,0 +1,45 @@
+services:
+  kafka:
+    image: confluentinc/cp-kafka:7.6.5  # Kafka 4.0.0
+    container_name: kafka
+    user: "root"
+    ports:
+      - "29092:29092"
+      - "9092:9092"  # Kafka clients
+      - "9093:9093"  # KRaft controller
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: "broker,controller"
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,INTERNAL://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,INTERNAL://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,INTERNAL:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: "hJ5qN5ZyR6Wll9JzZ1aL9Q"
+    networks:
+      - shared-net
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:latest
+    container_name: clickhouse
+    ports:
+      - "8123:8123"   # HTTP
+      - "9000:9000"   # Native
+    volumes:
+      - clickhouse-data:/var/lib/clickhouse
+    networks:
+      - shared-net
+    depends_on:
+      - kafka
+
+volumes:
+  clickhouse-data:
+  kafka_data:
+
+networks:
+  shared-net:
+    driver: bridge
