@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS kafka.stream_user_events
 (
     user_id UInt64,
     event_id String,
+    tracking_id String,
     timestamp String,
     event_type LowCardinality(String),
     event_data JSON
@@ -21,6 +22,7 @@ SETTINGS
 CREATE TABLE IF NOT EXISTS streaming.user_events (
     user_id UInt64,
     event_id String,
+    tracking_id String,
     timestamp String,
     event_type LowCardinality(String),
     event_data JSON

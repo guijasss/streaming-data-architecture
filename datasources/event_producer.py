@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from json import dumps
 from uuid import uuid4
-from random import choice, random, sample, randint
+from random import choice, random
 from argparse import ArgumentParser
 
 from kafka_handler import send_to_kafka
@@ -12,10 +12,13 @@ if __name__ == '__main__':
     parser = ArgumentParser(prog="user-events-producer", description="Sends user events to Kafka.")
     parser.add_argument("--log", action='store_true', default=None, help="Print events, instead of sending to Kafka")
     parser.add_argument("--pattern", default="RANDOM", help="Generate events with predefined drop-off", choices=["ABANDON_CHECKOUT", "FINISH_FLOW", "RANDOM"])
+    parser.add_argument("--batch-size", default=1, help="Specify how much events to generate", type=int)
+
     args = parser.parse_args()
 
     print_log: bool = args.log is not None
     pattern: str = args.pattern
+    batch_size: int = args.batch_size
 
     CAMPAIGN_ID = "summer_sale_2025"
     PRODUCTS = ["8f3bd0fe-c32b-44ad-b29c-100342eab215"]
@@ -26,7 +29,7 @@ if __name__ == '__main__':
     drop_off_patterns = {
         "ABANDON_CHECKOUT": [0, 0, 0, 0, 1],
         "FINISH_FLOW": [0, 0, 0, 0, 0],
-        "RANDOM": [1, 0.7, 0.3, 0.4, 0.5]
+        "RANDOM": [0.3, 0.4, 0.3, 0.4, 0.6]
     }
 
     DROP_OFF_PROBABILITY = drop_off_patterns.get(pattern)  # Probability of dropping at each step
@@ -75,21 +78,18 @@ if __name__ == '__main__':
             "referrer": ad_platform,
         }))
         if random() < DROP_OFF_PROBABILITY[2]: return events
-
-        products = sample(PRODUCTS, randint(0, len(PRODUCTS) - 1))
-
-        for product in products:
-            events.append(generate_event("add_to_cart", user_id, {
-                "tracking_id": tracking_id,
-                "product_id": product
-            }))
+        
+        events.append(generate_event("add_to_cart", user_id, {
+            "tracking_id": tracking_id,
+            "product_id": PRODUCTS[0]
+        }))
 
         if random() < DROP_OFF_PROBABILITY[3]: return events
 
         # Step 5: Checkout Start
         events.append(generate_event("checkout_start", user_id, {
             "tracking_id": tracking_id,
-            "cart_items": products,
+            "cart_items": PRODUCTS,
             "email": "fake@email.com"
         }))
         if random() < DROP_OFF_PROBABILITY[4]: return events
@@ -102,12 +102,23 @@ if __name__ == '__main__':
         }))
 
         return events
-
-    journey = generate_user_journey(1)
-    if len(journey) > 1:
-        for event in journey:
-            if print_log:
-                print(dumps(event, indent=2))
-            else:
-                print("Send to Kafka!")
-                send_to_kafka(event)
+    
+    def send_event() -> int:
+        """
+        returns: length of the simulated journey (number of events)
+        """
+        user_id = 1
+        journey = generate_user_journey(user_id)
+        if len(journey) > 1:
+            for event in journey:
+                if print_log:
+                    print(dumps(event, indent=2))
+                else:
+                    send_to_kafka(event)
+        return len(journey)
+    
+    num_events = 0
+    for i in range(0, batch_size):
+        num_events += send_event()
+        
+    print(f"{num_events} events were sent to Kafka!")
