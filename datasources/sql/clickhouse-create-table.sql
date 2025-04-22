@@ -30,4 +30,3 @@ CREATE TABLE IF NOT EXISTS streaming.user_events (
 CREATE MATERIALIZED VIEW streaming.user_events_mv TO streaming.user_events AS
 SELECT *
 FROM kafka.stream_user_events;
-

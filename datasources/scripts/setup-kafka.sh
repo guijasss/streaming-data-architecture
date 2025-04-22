@@ -1,1 +1,2 @@
-docker exec -it kafka kafka-topics --create --topic user-events --bootstrap-server kafka:9092 --partitions 3 --replication-factor 1
+docker exec -it kafka kafka-topics --create --topic user-events --bootstrap-server kafka:29092 
+docker exec -it kafka kafka-topics --create --topic user-events-flatten --bootstrap-server kafka:29092
