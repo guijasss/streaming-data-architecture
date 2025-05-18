@@ -16,6 +16,10 @@ class BaseSensor:
   def __init__(self):
     self.sensor_id = str(uuid4())
 
+  @staticmethod
+  def _variate(value: float, noise_range: float):
+    return round(value + uniform(-noise_range, noise_range), 2)
+
   def generate_event(self) -> OutputEvent: ...
 
 class AirSensor(BaseSensor):
@@ -31,10 +35,6 @@ class AirSensor(BaseSensor):
 
     # Controle de simulação temporal
     self.t = 0  # minutos simulados
-
-  @staticmethod
-  def _variate(value: float, noise_range: float):
-    return round(value + uniform(-noise_range, noise_range), 2)
 
   def _simulate_temperature(self):
     # Variação senoidal para simular ciclo diário (amplitude de 10°C)
@@ -99,17 +99,13 @@ class WaterSensor(BaseSensor):
 
     self.t = 0
 
-  @staticmethod
-  def _variate(value: float, noise_range: float):
-    return round(value + uniform(-noise_range, noise_range), 2)
-
   def _simulate_precipitation(self):
     # Pico de chuva à tarde (14h-18h)
     hour = (self.t % 1440) / 60
     if 14 <= hour <= 18:
       base = 20 * sin(pi * (hour - 14) / 4)
       return max(0.0, self._variate(base, 2.0))
-    return self._variate(0.0, 0.3)
+    return max(0.0, self._variate(0.0, 0.3))
 
   def _simulate_accumulated(self):
     # Reinicia acumulado à meia-noite
@@ -160,16 +156,12 @@ class GroundSensor(BaseSensor):
 
     self.t = 0
 
-  @staticmethod
-  def _variate(value: float, noise_range: float):
-    return round(value + uniform(-noise_range, noise_range), 2)
-
   def _simulate_acceleration(self):
     # Ruído normal + picos ocasionais (terremoto)
     base = 0.01
     if uniform(0, 1) < 0.001:  # 1 evento raro
       base += uniform(0.5, 2.0)
-    return self._variate(base, 0.02)
+    return max(0.0, self._variate(base, 0.02))
 
   def _simulate_frequency(self):
     return self._variate(self.frequency, 0.1)
