@@ -1,10 +1,15 @@
 from datetime import datetime
 from math import sin, pi
 from uuid import uuid4
+from random import uniform
 
 from event_producers.environmental.entities import Region, SensorType
 from event_producers.environmental.events import AirSensorEvent, OutputEvent
 from event_producers.environmental.measures import AirSensorMeasures
+
+
+def format_t_to_hour(t: int) -> str:
+  return f"{(t // 60) % 24:02d}:{t % 60:02d}"
 
 
 class BaseSensor:
@@ -25,8 +30,8 @@ class AirSensor(BaseSensor):
     self.t = 0  # minutos simulados
 
   @staticmethod
-  def _variate(valor_atual, delta):
-    return round(valor_atual + delta, 2)
+  def _variate(value: float, noise_range: float):
+    return round(value + uniform(-noise_range, noise_range), 2)
 
   def _simulate_temperature(self):
     # Variação senoidal para simular ciclo diário (amplitude de 10°C)
@@ -42,14 +47,14 @@ class AirSensor(BaseSensor):
 
   def _simulate_wind(self):
     self.wind_speed = self._variate(self.wind_speed, 0.1 * sin(self.t / 10))
-    self.wind_direction = (self.wind_direction + 2) % 360
+    self.wind_direction = (self.wind_direction + uniform(-3, 3)) % 360
     return round(self.wind_speed, 2), round(self.wind_direction)
 
   def _simulate_radiation(self):
-    # Radiação aumenta até o meio do "dia" e depois diminui
-    simulated_hour = (self.t % 1440) / 60  # minutos → horas do dia (0-24)
+    simulated_hour = (self.t % 1440) / 60
     if 6 <= simulated_hour <= 18:
-      return round(800 * sin(pi * (simulated_hour - 6) / 12), 2)
+      base = 800 * sin(pi * (simulated_hour - 6) / 12)
+      return self._variate(base, 25.0)
     return 0.0
 
   def generate_event(self) -> OutputEvent:
@@ -65,6 +70,7 @@ class AirSensor(BaseSensor):
     event = AirSensorEvent(
       sensor_id=self.sensor_id,
       type=SensorType.Air,
+      s_hour=format_t_to_hour(self.t),
       timestamp=timestamp,
       region=self.region,
       measures=AirSensorMeasures(
