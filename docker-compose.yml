@@ -52,6 +52,18 @@ services:
     networks:
       - shared-net
 
+  user_simulator:
+    build:
+      context: ./datasources/
+    profiles: ["simulator"]
+    environment:
+      - PYTHONUNBUFFERED=1
+    networks:
+      - shared-net
+    depends_on:
+      - kafka
+    command: ["--batch-size", "100", "--pattern", "RANDOM"]
+
 
 volumes:
   clickhouse-data:
