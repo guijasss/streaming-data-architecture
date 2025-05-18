@@ -3,7 +3,8 @@ from datetime import datetime
 from typing import Dict, TypedDict, Union
 
 from event_producers.environmental.entities import SensorType, Region
-from event_producers.environmental.measures import AirSensorMeasures, Measures
+from event_producers.environmental.measures import AirSensorMeasures, Measures, GroundSensorMeasures, \
+  WaterSensorMeasures
 
 
 class OutputEvent(TypedDict):
@@ -36,3 +37,11 @@ class BaseEvent:
 @dataclass
 class AirSensorEvent(BaseEvent):
   measures: AirSensorMeasures
+
+@dataclass
+class GroundSensorEvent(BaseEvent):
+  measures: GroundSensorMeasures
+
+@dataclass
+class WaterSensorEvent(BaseEvent):
+  measures: WaterSensorMeasures

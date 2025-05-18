@@ -14,3 +14,17 @@ class AirSensorMeasures(Measures):
   wind_speed: float
   wind_direction: int
   solar_radiation: float
+
+@dataclass
+class GroundSensorMeasures(Measures):
+  ground_acceleration: float
+  frequency: float
+  inclination: float
+  soil_temperature: float
+  soil_humidity: float
+
+@dataclass
+class WaterSensorMeasures(Measures):
+  precipitation_rate: float
+  daily_accumulated: float
+  water_level: float
